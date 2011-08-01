@@ -5,5 +5,5 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 else
     mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc
-    echo ':nine:M::::' > /proc/sys/fs/binfmt_misc/register
+    echo ':nine:M:2:\x01\xeb::/usr/bin/nine:' > /proc/sys/fs/binfmt_misc/register
 fi
