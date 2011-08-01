@@ -44,10 +44,10 @@ void print_usage ()
 
 void parse_args (int argc, char* argv[])
 {
-     if (strstr(argv[1], "-v") != NULL)
-          print_version();
-     else if (strstr(argv[1], "-h") != NULL || argc == 0)
+     if (argc == 1 || strstr(argv[1], "-h") != NULL)
           print_usage();
+     else if (strstr(argv[1], "-v") != NULL)
+          print_version();
      else
           execvp(argv[0], &argv[1]);
 }
