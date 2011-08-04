@@ -24,9 +24,11 @@
 
 CC = clang
 CFLAGS = -O0 -ggdb -march=native -pipe -Wall -Wextra
-objects = main.o execute.o
+objects = main.o config.o execute.o mmap.o util.o
 
 all : nine
 nine : $(objects)
 	$(CC) $(CFLAGS) -o nine $(objects) -I.
 
+clean :
+	rm $(objects) nine
