@@ -49,7 +49,7 @@ void parse_args (int argc, char* argv[])
      else if (strstr(argv[1], "-v") != NULL)
           print_version();
      else
-          nine_init(argc, argv);
+          execute(argc, argv);
 }
 
 int main (int argc, char* argv[])
