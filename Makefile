@@ -23,12 +23,17 @@
  # # #
 
 CC = clang
-CFLAGS = -O0 -ggdb -march=native -pipe -Wall -Wextra
-objects = main.o config.o execute.o mmap.o util.o
+CFLAGS = -O0 -ggdb -march=native -pipe -Wall -Wextra -D_GNU_SOURCE
+
+# we must set the base address of the ELF executable somewhere out of the way
+# thusly, we set the base address to 0xC0000000, which is reserved for the kernel
+# in a typical plan 9 binary.
+LDFLAGS = -Ttext=0xC00000000
+objects = main.o execute.o util.o
 
 all : nine
 nine : $(objects)
 	$(CC) $(CFLAGS) -o nine $(objects) -I.
 
 clean :
-	rm $(objects) nine
+	rm *.o nine
