@@ -22,29 +22,45 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * * */
 
+#include <arpa/inet.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stddef.h>
+#include <sys/mman.h>
 #include <unistd.h>
 
 #include "includes.h"
 
-/* argc/argv for the plan 9 application */
-int __nine_main_argc = 0;
-char **__nine_main_argv = NULL;
-char **__nine_main_environ = NULL;
-
-void nine_init (int argc, char* argv[])
+void execute (int argc, char* argv[])
 {
-     char buf[128];
+     struct plan9_exec header;
+     long buf[8];
      int fd = open(argv[1], O_RDONLY);
+     void* fpos;
+
+     read(fd, buf, 8 * sizeof(long));
+     header.magic = ntohl(buf[0]);
+     header.text = ntohl(buf[1]);
+     header.data = ntohl(buf[2]);
+     header.bss = ntohl(buf[3]);
+     header.syms = ntohl(buf[4]);
+     header.entry = ntohl(buf[5]);
+     header.spsz = ntohl(buf[6]);
+     header.pcsz = ntohl(buf[7]);
+
+     verify(header.magic);
+
+     /* map TEXT segment in */
+     fpos = mmap(STR_ADDR, TXT_ADDR(header), PROT_READ | PROT_EXEC, 
+                 MAP_PRIVATE | MAP_FIXED | MAP_EXECUTABLE, fd, 0);
+     if (fpos == -1) 
+          error("Error: kernels after 2.6.26 prevent non-root applications from mmaping adresses below 4096, either run the effected program as root or remove this limitation via sysctl -w vm.mmap_min_addr=\"0\"");
+     /* map DATA section + bss segment at next page aligned address */
+     fpos = mmap(STR_ADDR + page_align(TXT_ADDR(header)), header.data + header.bss, PROT_READ | PROT_WRITE, 
+                 MAP_PRIVATE | MAP_FIXED, fd, 0);
+
      void (*init_func)(void);
-
-     read(fd, buf, 128);
-     verify(buf);
-
-     __nine_main_argc = argc;
-     __nine_main_argv = argv;
-
-     mmap_init();
+     init_func = header.entry;
      init_func();
+     
 }
